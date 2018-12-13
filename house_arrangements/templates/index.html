@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>{% block title %}House Arrangements{% endblock %}</title>
+  {% load static %}
+  {% block stylesheets %} <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  {% endblock stylesheets %}
+</head>
+<body>
+  {% block content %}
+  <h1>House Arrangements</h1>
+  <div class="houses">
+  <h2>Houses</h2>
+    {% for house in houses %}
+      <div>
+        <em>{{ house }}</em>
+          <div class="house-container">
+          {% for person in house.people.all %}
+            <div>{{person}}</div>
+          {% endfor %}
+          </div>
+      </div>
+    {% endfor %}
+
+  </div>
+  <div class="people">
+    <h2>Unhoused Persons</h2>
+      {% for person in people.all %}
+        <div>{{person}}</div>
+      {% endfor %}
+  </div>
+  {% endblock %}
+</body>
+{% block root_scripts %}
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/dragula/3.7.2/dragula.min.js'></script>
+  {% load static %}
+  <script src="{% static '/js/index.js' %}" charset="utf-8"></script>
+{% endblock root_scripts %}
+
+{% block scripts %}{% endblock %}
+</html>
