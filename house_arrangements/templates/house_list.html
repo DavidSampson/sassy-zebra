@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<ul>
+{% for house in object_list %}
+  <li><a href="{% url 'house_detail' house.id %}">{{house.name}}</a></li>
+{% endfor %}
+</ul>
+<h1>New House</h1>
+<form action="/houses/" method="post">
+  {% csrf_token %}
+  {{ form }}
+  <input type="submit" value="OK">
+</form>
+{% endblock content %}

@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>{{ object.name }}</h1>
+<ul>
+{% for spot in object.guest_spots.all %}
+  <li>{{spot.spot_type}}</li>
+{% endfor %}
+</ul>
+<h1>Edit House</h1>
+<form action="{% url 'house_detail' object.id %}" method="post">
+  {% csrf_token %}
+  {{ form }}
+  <input type="submit" value="OK">
+</form>
+{% endblock content %}

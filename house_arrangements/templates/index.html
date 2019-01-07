@@ -1,44 +1,39 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>{% block title %}House Arrangements{% endblock %}</title>
-  {% load static %}
-  {% block stylesheets %} <link rel="stylesheet" href="{% static 'css/style.css' %}">
-  {% endblock stylesheets %}
-</head>
-<body>
-  {% block content %}
+{% extends 'base.html' %}
+
+{% block content %}
   <h1>House Arrangements</h1>
   <div class="houses">
   <h2>Houses</h2>
     {% for house in houses %}
-      <div>
+      <div id="house-{{ house.id }}" class="house">
         <em>{{ house }}</em>
-          <div class="house-container">
-          {% for person in house.people.all %}
-            <div>{{person}}</div>
-          {% endfor %}
-          </div>
+        <ul>
+        {% for spot in house.guest_spots.all %}
+          <li class="{{spot.spot_type}}">
+            <span>{{spot.spot_type}}</span>
+            <div class="container spot-container">
+              {% if spot.person.id is not None %}
+                <span id="person-{{person.id}}">{{spot.person}}</span>
+              {% endif %}
+            </div>
+          </li>
+        {% endfor %}
+        </ul>
       </div>
     {% endfor %}
 
   </div>
-  <div class="people">
+  <div id="house-none" class="people">
     <h2>Unhoused Persons</h2>
+    <div class="people-container container">
       {% for person in people.all %}
-        <div>{{person}}</div>
+        <div id="person-{{person.id}}">{{person}}</div>
       {% endfor %}
+    </div>
   </div>
-  {% endblock %}
-</body>
-{% block root_scripts %}
-  <script src='https://cdnjs.cloudflare.com/ajax/libs/dragula/3.7.2/dragula.min.js'></script>
-  {% load static %}
-  <script src="{% static '/js/index.js' %}" charset="utf-8"></script>
-{% endblock root_scripts %}
+{% endblock %}
 
-{% block scripts %}{% endblock %}
-</html>
+{% block scripts %}
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/dragula/3.7.2/dragula.min.js'></script>
+  <script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+{% endblock %}
