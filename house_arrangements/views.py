@@ -1,48 +1,52 @@
-from django.views.generic import TemplateView, ListView, UpdateView, View
-from django.views.generic.edit import CreateView
-from django.forms import modelform_factory
+from django.views.generic import TemplateView, ListView, UpdateView, DetailView, CreateView
 from django.http import HttpResponse
+from django.core.exceptions import ValidationError
 
-from .models import House, Person
-
-
-class IndexView(TemplateView):
-    extra_context = {
-        'houses': House.objects.all(),
-        'people': Person.objects.filter(house__id=None)
-    }
-    template_name = 'index.html'
-
-    def post(self, req, *args, **kwargs):
-        person_id = req.POST.get('person')
-        house_id = req.POST.get('house')
-        spot = req.POST.get('spot')
-        try:
-            House.objects.get(house_id).add_person(person_id, spot)
-            return HttpResponse('')
-        except:
-            return HttpResponse(f'Tried to move {person_id} to spot {spot} in {house_id}', status=403)
+from .models import House, Person, Spot, SpotFormSet
 
 class HouseMixin:
-    success_url = '/houses/'
     model = House
-    fields = ['__all__']
-
-class HousesList(HouseMixin, ListView):
-    template_name = "house_list.html"
+    fields = ["name"]
+    def form_valid(self, form):
+        self.object = form.save()
+        spots = SpotFormSet(self.request.POST, instance=self.object)
+        if spots.is_valid():
+            spots.save()
+        return super().form_valid(form)
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["form"] = modelform_factory(model=self.model, fields=self.fields)
+        context["spots"] = SpotFormSet(instance=self.object if hasattr(self, 'object') else None)
         return context
+    def get_template_names(self):
+        return ["%s%s.html" % (self.model._meta.model_name, self.template_name_suffix)]
 
-class HouseCreate(HouseMixin, CreateView):
+class List(HouseMixin, ListView):
     pass
 
-class HousesView(View):
-    def get(self, request, *args, **kwargs):
-        return HousesList.as_view()(request, *args, **kwargs)
-    def post(self, request, *args, **kwargs):
-        return HouseCreate.as_view()(request, *args, **kwargs)
+class Create(HouseMixin, CreateView):
+    pass
 
-class HouseView(HouseMixin, UpdateView):
-    template_name = 'house_detail.html'
+class Detail(HouseMixin, DetailView):
+    pass
+
+class Update(HouseMixin, UpdateView):
+    pass
+
+class Index(TemplateView):
+    template_name = 'index.html'
+
+    extra_context = {
+        'houses': House.objects.all(),
+        'people': Person.objects.filter(spot__id=None),
+        'spots': Spot.objects.all()
+    }
+
+    def post(self, req):
+        person_id = int(req.POST.get('person'))
+        spot_id = int(req.POST.get('spot'))
+        try:
+            Person.objects.get(id=person_id).set_spot(spot_id)
+            return HttpResponse('')
+        except ValidationError:
+            return HttpResponse(
+                f'Tried to move {person_id} to spot {spot_id}', status=403)

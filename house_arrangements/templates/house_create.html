@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>New House</h1>
+<form action="/houses/create/" method="post">
+  {% csrf_token %}
+  {{ form }}
+  {{ spots }}
+  <input type="submit" value="OK">
+</form>
+{% endblock content %}

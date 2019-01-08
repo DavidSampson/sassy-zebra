@@ -1,37 +1,61 @@
 from django.db import models
+from django.forms import inlineformset_factory
+from django.urls import reverse
 from django.core.exceptions import ValidationError
 
-class Person(models.Model):
-    name = models.CharField(max_length=200)
-    def __str__(self):
-        return self.name
+def validate_between_ones(value):
+    if value > 1 or value < -1:
+        raise ValidationError(f'{value} is not between 1 and -1')
 
 class House(models.Model):
     name = models.CharField(max_length=200)
-
-    max_bed_spots = models.IntegerField(default=0)
-    bed_spots = models.ManyToManyField(Person, blank=True)
-
-    max_floor_spots = models.IntegerField(default=0)
-    floor_spots = models.ManyToManyField(Person, blank=True)
+    cats = models.BooleanField(null=True, default=None)
+    dogs = models.BooleanField(null=True, default=None)
+    noise = models.FloatField(validators=[validate_between_ones], null=True, default=None)
+    early_up = models.FloatField(validators=[validate_between_ones], null=True, default=None)
 
     def __str__(self):
         return self.name
 
-    def _clean_spots(self, limit, spot_list):
-        if len(spot_list) > limit:
-            raise ValidationError('Too many people in this spot!')
+    def get_absolute_url(self):
+        return reverse('house_detail', args=[str(self.id)])
 
-    def clean(self):
-        self._clean_spots(self.max_bed_spots, self.bed_spots)
-        self._clean_spots(self.max_floor_spots, self.floor_spots)
+class Spot(models.Model):
+    SPOT_TYPES = (
+        ('bed', 'Bed'),
+        ('floor', 'Floor'),
+        ('couch', 'Couch')
+    )
+    spot_type = models.CharField(max_length=200, choices=SPOT_TYPES)
+    name = models.CharField(max_length=30)
+    description = models.CharField(max_length=200, blank=True)
+    quantity = models.PositiveIntegerField(default=0)
+    house = models.ForeignKey('House', on_delete=models.CASCADE)
 
-    def add_person(self, person, spot):
-        if spot.startswith('bed'):
-            self.bed_spots.add(person)
-        elif spot.startswith('floor'):
-            self.floor_spots.add(person)
+SpotFormSet = inlineformset_factory(
+    House,
+    Spot,
+    fields=("spot_type", "name", "description", "quantity"))
+
+class Person(models.Model):
+    name = models.CharField(max_length=200)
+    spot = models.ForeignKey('Spot', on_delete=models.SET_NULL, null=True, default=None)
+    cats = models.FloatField(validators=[validate_between_ones], null=True, default=None)
+    dogs = models.FloatField(validators=[validate_between_ones], null=True, default=None)
+    noise = models.FloatField(validators=[validate_between_ones], null=True, default=None)
+    early_up = models.FloatField(validators=[validate_between_ones], null=True, default=None)
+    bed = models.FloatField(validators=[validate_between_ones], null=True, default=None)
+
+    def __str__(self):
+        return self.name
+
+    def set_spot(self, spot_id):
+        if spot_id == -1:
+            self.spot = None
         else:
-            raise ValidationError('Spot type not valid')
-        self.clean()
+            spot = Spot.objects.get(id=spot_id)
+            if spot.person_set.count() + 1 > spot.quantity:
+                raise ValidationError(f'Spot {spot.id} is full')
+            else:
+                self.spot = spot
         self.save()

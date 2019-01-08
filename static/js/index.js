@@ -3,16 +3,18 @@ const containers = [
 ];
 
 function getId(string) {
-  return string.split('-')[1];
+  return Number(string.split('-')[1]);
 }
 
-var drake = dragula(containers);
+var drake = dragula(containers, {
+  accepts: (_, target) => target.id == 'people-container' || target.childElementCount == 0
+});
 
 drake.on('drop', (el, target, source)=>{
   let body = new FormData();
   body.append('person', getId(el.id));
-  body.append('spot', target.parentElement.getAttribute('class'));
-  body.append('house', getId(target.closest('.house').id));
+  let spot = target.id == 'people-container' ? -1 : getId(target.closest('.spot').id);
+  body.append('spot', spot);
   fetch('/', {
     method: 'POST',
     headers:{ 'X-CSRFToken': Cookies.get('csrftoken') },
