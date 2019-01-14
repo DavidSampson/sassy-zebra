@@ -1,40 +1,13 @@
 {% extends 'base.html' %}
 {% load range %}
 {% block content %}
-  <h1>House Arrangements</h1>
-  <div class="houses">
-  <h2>Houses</h2>
-    {% for house in houses %}
-      <div id="house-{{ house.id }}" class="house">
-        <em>{{ house }}</em>
-        <ul>
-        {% for spot in house.spot_set.all%}
-          <li class="spot" id="spot-{{spot.id}}">
-            <span>{{spot.name}}</span>
-            <ul>
-              {% for i in spot.quantity|times %}
-                <li class="container spot-container">
-                  {% if spot.person_set.all|length > 0 and i < spot.person_set.all|length %}
-                    {% with spot.person_set.all|index:i as person %}
-                      <div id="person-{{person.id}}">{{person}}</div>
-                    {% endwith %}
-                  {% endif %}
-                </li>
-              {% endfor %}
-            </ul>
-          </li>
-        {% endfor %}
-        </ul>
-      </div>
-    {% endfor %}
 
-  </div>
-  <div id="house-none" class="people">
+<h1>House Arrangements</h1>
+<div id="work-holder">
+  <div id="house-none" class="people grid-item stamp">
     <h2>Unhoused Persons</h2>
-    <div id="people-container" class="people-container container">
-      {% for person in people.all %}
-        <div id="person-{{person.id}}">{{person}}</div>
-      {% endfor %}
-    </div>
+    <div id="people-container" class="people-container container"></div>
   </div>
+</div>
+
 {% endblock %}

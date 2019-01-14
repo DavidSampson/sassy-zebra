@@ -1,23 +1,43 @@
-const containers = [
-  ...document.querySelectorAll('.container')
-];
+async function printData() {
+  let houses = d3.select('#work-holder')
+    .selectAll('div')
+    .data(await getData())
+    .enter().append('div')
+    .attr('class',d=> d.fields ? 'house' : 'house no-house');
 
-function getId(string) {
-  return Number(string.split('-')[1]);
+  houses.append(houseText);
+
+  let spots = houses
+    .selectAll(':scope > div:not(.house-name)')
+    .data(d=>d.spots)
+    .enter().append('div')
+    .attr('class','spot');
+
+  spots.selectAll(function(d) {
+    _.times(d.fields.quantity,() => this.appendChild(newEl('div')));
+    return this.childNodes;
+  });
+
+  let people = spots.selectAll('div')
+    .data(d=>d.people);
+
+  people.enter().append('div')
+    .merge(people)
+    .attr('class','person')
+    .text(d=>d.fields.name);
+
+  var packery = new Packery( '#work-holder', {
+    itemSelector: '.house',
+    gutter: 10,
+    stamp: '.no-house'
+  });
+
+  var drake = dragula(
+    [...document.querySelectorAll('.spot')],
+    { accepts: isOpenContainer }
+  );
+
+  drake.on('drop', updateSpot);
 }
 
-var drake = dragula(containers, {
-  accepts: (_, target) => target.id == 'people-container' || target.childElementCount == 0
-});
-
-drake.on('drop', (el, target, source)=>{
-  let body = new FormData();
-  body.append('person', getId(el.id));
-  let spot = target.id == 'people-container' ? -1 : getId(target.closest('.spot').id);
-  body.append('spot', spot);
-  fetch('/', {
-    method: 'POST',
-    headers:{ 'X-CSRFToken': Cookies.get('csrftoken') },
-    body: body
-  });
-});
+printData();

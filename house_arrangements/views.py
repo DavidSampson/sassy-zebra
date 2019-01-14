@@ -1,6 +1,9 @@
-from django.views.generic import TemplateView, ListView, UpdateView, DetailView, CreateView
-from django.http import HttpResponse
+from django.views.generic import View, TemplateView, ListView, UpdateView, DetailView, CreateView
+from django.views.generic.list import MultipleObjectMixin
+from django.http import HttpResponse, JsonResponse, FileResponse
+from django.core import serializers
 from django.core.exceptions import ValidationError
+from django.contrib.staticfiles import finders
 
 from .models import House, Person, Spot, SpotFormSet
 
@@ -32,15 +35,9 @@ class Detail(HouseMixin, DetailView):
 class Update(HouseMixin, UpdateView):
     pass
 
-class Index(TemplateView):
-    template_name = 'index.html'
-
-    extra_context = {
-        'houses': House.objects.all(),
-        'people': Person.objects.filter(spot__id=None),
-        'spots': Spot.objects.all()
-    }
-
+class Index(View):
+    def get(self, req):
+        return FileResponse(open(finders.find('html/index.html'),'rb'))
     def post(self, req):
         person_id = int(req.POST.get('person'))
         spot_id = int(req.POST.get('spot'))
@@ -50,3 +47,14 @@ class Index(TemplateView):
         except ValidationError:
             return HttpResponse(
                 f'Tried to move {person_id} to spot {spot_id}', status=403)
+
+class ExposeModelAsJSONView(MultipleObjectMixin, View):
+    def get(self, request, *args, **kwargs):
+        return JsonResponse(serializers.serialize('json', self.get_queryset()), safe=False)
+
+class People(ExposeModelAsJSONView):
+    model = Person
+class Spots(ExposeModelAsJSONView):
+    model = Spot
+class Houses(ExposeModelAsJSONView):
+    model = House

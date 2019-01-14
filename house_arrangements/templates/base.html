@@ -6,7 +6,9 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>{% block title %}House Arrangements{% endblock %}</title>
   {% load static %}
-  {% block stylesheets %} <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  {% block stylesheets %}
+    <link href="https://fonts.googleapis.com/css?family=Poppins" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
   {% endblock stylesheets %}
 </head>
 <body>
@@ -28,8 +30,11 @@
 {% block scripts %}{% endblock %}
 {% block root_scripts %}
   {% load static %}
+  <script src="https://unpkg.com/packery@2/dist/packery.pkgd.min.js"></script>
+  <script src="https://unpkg.com/draggabilly@2/dist/draggabilly.pkgd.min.js"></script>
   <script src='https://cdnjs.cloudflare.com/ajax/libs/dragula/3.7.2/dragula.min.js'></script>
   <script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+  <script src="{% static '/js/lib.js' %}" charset="utf-8"></script>
   <script src="{% static '/js/index.js' %}" charset="utf-8"></script>
 {% endblock root_scripts %}
 </html>
